@@ -10,7 +10,7 @@
 在使用这些类之前，请确保您已经安装了以下 Python 包：
 
 ```bash
-pip install sqlalchemy asyncpg pg-cache
+pip install -r requirements.txt
 ```
 
 ## 使用方法

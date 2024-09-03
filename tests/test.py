@@ -1,9 +1,13 @@
 import asyncio
 import logging
+import os
 
 from pg_cache import AsyncPgCache, PgCache
+from find_env import find_project_root_and_load_dotenv
 
-DATABASE_URL = "postgresql+asyncpg://ke:2003730Li@localhost:5432/using_test"
+find_project_root_and_load_dotenv("pg-cache")
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 def test_sync_pg_cache():

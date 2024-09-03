@@ -20,7 +20,7 @@ class CacheEntry(Base):
     value = Column(Text)
     expire_time = Column(DateTime)
     hit_count = Column(Integer, default=0)
-    partition_key = Column(String, default='default_partition')
+    partition_key = Column(String, default='default')
 
     @declared_attr
     def __tablename__(cls):

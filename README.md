@@ -11,7 +11,7 @@ and provide functionalities to set, get, delete, and import/export cache entries
 Before using these classes, ensure you have the following Python packages installed:
 
 ```bash
-pip install sqlalchemy asyncpg
+pip install sqlalchemy asyncpg pg-cache
 ```
 
 ## Usage

@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='pg_cache',
-    version='0.1.0',
-    description='A caching package with both synchronous and asynchronous support for PostgreSQL.',
-    long_description=open('README_zh.md').read(),
+    name='pg-cache',
+    version='0.1.1',
+    description='A postgresql wrapper similar to diskcache',
+    long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     author='Your Name',
     author_email='your.email@example.com',

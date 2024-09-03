@@ -3,6 +3,7 @@ README.md
 setup.py
 pg_cache/__init__.py
 pg_cache/async_cache.py
+pg_cache/cache.py
 pg_cache/sync_cache.py
 pg_cache.egg-info/PKG-INFO
 pg_cache.egg-info/SOURCES.txt

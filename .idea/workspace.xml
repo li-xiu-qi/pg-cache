@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fe4dec7-1417-4717-a031-0dbbf4d07bca" name="更改" comment="" />
+    <list default="true" id="5fe4dec7-1417-4717-a031-0dbbf4d07bca" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/build/lib/pg_cache/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/pg_cache/async_cache.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/pg_cache/sync_cache.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/tests/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/tests/test_async.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/tests/test_sync.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/pg_cache-0.1.1-py3-none-any.whl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/pg_cache-0.1.1.tar.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pg_cache.egg-info/PKG-INFO" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pg_cache.egg-info/SOURCES.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pg_cache.egg-info/dependency_links.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pg_cache.egg-info/requires.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pg_cache.egg-info/top_level.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -10,21 +28,21 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "li-xiu-qi"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;li-xiu-qi&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/li-xiu-qi/pg-cache.git",
-    "accountId": "c1c7ffde-d82e-4a3b-9e65-b3bed2e50c5a"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/li-xiu-qi/pg-cache.git&quot;,
+    &quot;accountId&quot;: &quot;c1c7ffde-d82e-4a3b-9e65-b3bed2e50c5a&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="2lXZhubqACUq4d53oi7ziNdsidr" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -32,9 +50,11 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "preferences.fileTypes",
     "vue.rearranger.settings.migration": "true"
@@ -57,6 +77,7 @@
       <option name="presentableId" value="Default" />
       <updated>1725328503707</updated>
       <workItem from="1725328505120" duration="295000" />
+      <workItem from="1725328805729" duration="2092000" />
     </task>
     <servers />
   </component>

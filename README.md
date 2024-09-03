@@ -1,6 +1,7 @@
 # PgCache
 
-`PgCache` is a synchronous caching library based on PostgreSQL, using SQLAlchemy for database operations.
+`PgCache` is a synchronous cache library based on PostgreSQL, using SQLAlchemy for database operations (the asynchronous
+version is called AsyncPgCache).
 
 ## Installation
 
@@ -12,11 +13,11 @@ pip install sqlalchemy psycopg2
 
 ## Usage
 
-### Initializing the Cache
+### Initialize Cache
 
 ```python
 import logging
-from pg_cache.sync_cache import PgCache  # Assuming the synchronous version class file is sync_cache.py
+from pg_cache.sync_cache import PgCache
 
 DATABASE_URL = "postgresql://username:password@localhost:5432/dbname"
 
@@ -62,49 +63,58 @@ Initialize a `PgCache` instance.
 
 Initialize the database and create the cache table.
 
-#### `set(self, key: str, value: Any, expire_after_seconds: int = 86400) -> None`
+#### `set(self, key: str, value: Any, expire_after_seconds: int = 86400, partition_key: str = 'default') -> None`
 
 Set a cache entry.
 
 - `key`: Cache key.
 - `value`: Cache value, can be any type of data.
-- `expire_after_seconds`: Cache expiration time in seconds, default is 86400 seconds (1 day).
+- `expire_after_seconds`: Cache expiration time (seconds), default is 86400 seconds (1 day).
+- `partition_key`: Partition key, default is `default`.
 
-#### `set_bulk(self, entries: List[Dict[str, Any]], expire_after_seconds: int = 86400) -> None`
+####
+`set_bulk(self, entries: List[Dict[str, Any]], expire_after_seconds: int = 86400, partition_key: str = 'default') -> None`
 
 Set multiple cache entries in bulk.
 
 - `entries`: List of multiple cache entries, each entry is a dictionary containing `key` and `value`.
-- `expire_after_seconds`: Cache expiration time in seconds, default is 86400 seconds (1 day).
+- `expire_after_seconds`: Cache expiration time (seconds), default is 86400 seconds (1 day).
+- `partition_key`: Partition key, default is `default`.
 
-#### `get(self, key: str) -> Optional[Any]`
+#### `get(self, key: str, partition_key: str = 'default') -> Optional[Any]`
 
 Get a cache entry.
 
 - `key`: Cache key.
+- `partition_key`: Partition key, default is `default`.
 - Return value: Cache value, if the cache entry does not exist or has expired, returns `None`.
 
-#### `delete(self, key: str) -> None`
+#### `delete(self, key: str, partition_key: str = 'default') -> None`
 
 Delete a cache entry.
 
 - `key`: Cache key.
+- `partition_key`: Partition key, default is `default`.
 
-#### `flushdb(self) -> None`
+#### `flushdb(self, partition_key: str = 'default') -> None`
 
 Clear all cache entries.
 
-#### `export_to_file(self, file_path: str) -> None`
+- `partition_key`: Partition key, default is `default`.
+
+#### `export_to_file(self, file_path: str, partition_key: str = 'default') -> None`
 
 Export cache entries to a file.
 
 - `file_path`: Path to the export file.
+- `partition_key`: Partition key, default is `default`.
 
-#### `import_from_file(self, file_path: str) -> None`
+#### `import_from_file(self, file_path: str, partition_key: str = 'default') -> None`
 
 Import cache entries from a file.
 
 - `file_path`: Path to the import file.
+- `partition_key`: Partition key, default is `default`.
 
 ## Example
 
@@ -112,7 +122,7 @@ Here is a complete example demonstrating how to use the `PgCache` class:
 
 ```python
 import logging
-from pg_cache.sync_cache import PgCache  # Assuming the synchronous version class file is sync_cache.py
+from pg_cache.sync_cache import PgCache
 
 DATABASE_URL = "postgresql://username:password@localhost:5432/dbname"
 

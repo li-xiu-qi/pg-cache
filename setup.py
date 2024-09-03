@@ -2,13 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='pg-cache',
-    version='0.1.1',
+    version='0.1.3',
     description='A postgresql wrapper similar to diskcache',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    author='Your Name',
-    author_email='your.email@example.com',
-    url='https://github.com/li-xiu-qi/pg_cache',
+    author='xiaoke',
+    author_email='lixiuqixiaoke@qq.com',
+    url='https://github.com/li-xiu-qi/pg-cache',
     packages=find_packages(),
     install_requires=[
         'sqlalchemy',

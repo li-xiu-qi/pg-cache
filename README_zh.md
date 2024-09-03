@@ -11,6 +11,7 @@
 
 ```bash
 pip install -r requirements.txt
+or pip install pg-cache
 ```
 
 ## 使用方法
@@ -20,7 +21,7 @@ pip install -r requirements.txt
 #### 初始化
 
 ```python
-from your_module import PgCache
+from pg_cache import PgCache
 
 db_url = "postgresql://user:password@localhost/dbname"
 table_name = "cache_table"

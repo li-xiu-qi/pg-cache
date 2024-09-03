@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fe4dec7-1417-4717-a031-0dbbf4d07bca" name="更改" comment="" />
+    <list default="true" id="5fe4dec7-1417-4717-a031-0dbbf4d07bca" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,6 +46,7 @@
   &quot;keyToString&quot;: {
     &quot;Python.test.executor&quot;: &quot;Run&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/ke/桌面/my/pg-cache/tests&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -53,6 +56,12 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -75,6 +84,10 @@
       <workItem from="1725346736848" duration="1564000" />
       <workItem from="1725349882729" duration="75000" />
       <workItem from="1725351012508" duration="58000" />
+      <workItem from="1725351185794" duration="259000" />
+      <workItem from="1725355143196" duration="101000" />
+      <workItem from="1725355265076" duration="681000" />
+      <workItem from="1725356819464" duration="19000" />
     </task>
     <servers />
   </component>

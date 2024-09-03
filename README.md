@@ -12,6 +12,7 @@ Before using these classes, ensure you have the following Python packages instal
 
 ```bash
 pip install -r requirements.txt
+or pip install pg-cache
 ```
 
 ## Usage
@@ -21,7 +22,7 @@ pip install -r requirements.txt
 #### Initialization
 
 ```python
-from your_module import PgCache
+from pg_cache import PgCache
 
 db_url = "postgresql://user:password@localhost/dbname"
 table_name = "cache_table"

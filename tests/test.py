@@ -26,8 +26,7 @@ def test_sync_pg_cache():
     print(f"Sync get after delete: {value}")
 
     # 测试 set_bulk 和 delete_bulk
-    sync_cache.set_bulk([{"key": "key1", "value": "value1"}, {"key": "key2", "value": "value2"}],
-                        expire_after_seconds=60)
+    sync_cache.set_bulk([{"key1": "value1"}, {"key2": "value2"}], expire_after_seconds=60)
     value1 = sync_cache.get("key1")
     value2 = sync_cache.get("key2")
     print(f"Sync get bulk: {value1}, {value2}")
@@ -42,6 +41,14 @@ def test_sync_pg_cache():
     sync_cache.flushdb()
     value = sync_cache.get("test_key")
     print(f"Sync get after flushdb: {value}")
+
+    # 测试 export_to_file 和 import_from_file
+    sync_cache.set("test_key", {"data": "test_value"}, expire_after_seconds=60)
+    sync_cache.export_to_file("cache_export.json")
+    sync_cache.flushdb()
+    sync_cache.import_from_file("cache_export.json")
+    value = sync_cache.get("test_key")
+    print(f"Sync get after import: {value}")
 
 
 async def test_async_pg_cache():
@@ -60,8 +67,7 @@ async def test_async_pg_cache():
     print(f"Async get after delete: {value}")
 
     # 测试 set_bulk 和 delete_bulk
-    await async_cache.set_bulk([{"key": "key1", "value": "value1"}, {"key": "key2", "value": "value2"}],
-                               expire_after_seconds=60)
+    await async_cache.set_bulk([{"key1": "value1"}, {"key2": "value2"}], expire_after_seconds=60)
     value1 = await async_cache.get("key1")
     value2 = await async_cache.get("key2")
     print(f"Async get bulk: {value1}, {value2}")
@@ -76,6 +82,14 @@ async def test_async_pg_cache():
     await async_cache.flushdb()
     value = await async_cache.get("test_key")
     print(f"Async get after flushdb: {value}")
+
+    # 测试 export_to_file 和 import_from_file
+    await async_cache.set("test_key", {"data": "test_value"}, expire_after_seconds=60)
+    await async_cache.export_to_file("async_cache_export.json")
+    await async_cache.flushdb()
+    await async_cache.import_from_file("async_cache_export.json")
+    value = await async_cache.get("test_key")
+    print(f"Async get after import: {value}")
 
 
 if __name__ == "__main__":

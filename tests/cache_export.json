@@ -1,0 +1,9 @@
+[
+    {
+        "key": "test_key",
+        "value": "{\"data\": \"test_value\"}",
+        "expire_time": "2024-09-16T07:35:41.583231",
+        "hit_count": 0,
+        "partition_key": "default_partition"
+    }
+]

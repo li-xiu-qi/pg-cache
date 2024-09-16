@@ -13,24 +13,25 @@ from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
+
 class CacheEntry(Base):
     __abstract__ = True
 
-    key = Column(String)
+    key = Column(String, primary_key=True)
     value = Column(Text)
-    expire_time = Column(DateTime)
+    expire_time = Column(DateTime, nullable=True)
     hit_count = Column(Integer, default=0)
-    partition_key = Column(String, default='default')
+    partition_key = Column(String, primary_key=True, default='default')
 
     @declared_attr
     def __tablename__(cls):
         return cls.__name__.lower()
 
     __table_args__ = (
-        PrimaryKeyConstraint('key', 'partition_key', name='pk_key_partition_key'),
         Index('idx_key_expire_time', 'key', 'expire_time'),
         Index('idx_partition_key', 'partition_key'),
     )
+
 
 class PgCache:
     def __init__(self, db_url: str, table_name: str, log_level: int = logging.ERROR):
@@ -62,13 +63,14 @@ class PgCache:
         except Exception as e:
             self.logger.error(f"Failed to initialize database: {e}")
 
-    def set(self, key: str, value: Any, expire_after_seconds: int = 86400,
+    def set(self, key: str, value: Any, expire_after_seconds: Optional[int] = None,
             partition_key: str = 'default_partition') -> None:
         self.logger.info(f"Setting cache entry: {key}")
         try:
             if isinstance(value, (dict, list)):
                 value = json.dumps(value)
-            expire_time = datetime.utcnow() + timedelta(seconds=expire_after_seconds)
+            expire_time = None if expire_after_seconds is None else datetime.utcnow() + timedelta(
+                seconds=expire_after_seconds)
             entry = self.CacheEntry(key=key, value=value, expire_time=expire_time, partition_key=partition_key)
             with self.Session() as session:
                 session.merge(entry)
@@ -77,21 +79,21 @@ class PgCache:
         except Exception as e:
             self.logger.error(f"Failed to set cache entry: {key}, error: {e}")
 
-    def set_bulk(self, entries: List[Dict[str, Any]], expire_after_seconds: int = 86400,
+    def set_bulk(self, entries: List[Dict[str, Any]], expire_after_seconds: Optional[int] = None,
                  partition_key: str = 'default_partition') -> None:
         self.logger.info(f"Setting bulk cache entries")
         try:
             with self.Session() as session:
                 cache_entries = []
                 for entry in entries:
-                    key = entry['key']
-                    value = entry['value']
-                    if isinstance(value, (dict, list)):
-                        value = json.dumps(value)
-                    expire_time = datetime.utcnow() + timedelta(seconds=expire_after_seconds)
-                    cache_entry = self.CacheEntry(key=key, value=value, expire_time=expire_time,
-                                                  partition_key=partition_key)
-                    cache_entries.append(cache_entry)
+                    for key, value in entry.items():
+                        if isinstance(value, (dict, list)):
+                            value = json.dumps(value)
+                        expire_time = None if expire_after_seconds is None else datetime.utcnow() + timedelta(
+                            seconds=expire_after_seconds)
+                        cache_entry = self.CacheEntry(key=key, value=value, expire_time=expire_time,
+                                                      partition_key=partition_key)
+                        cache_entries.append(cache_entry)
                 session.bulk_save_objects(cache_entries)
                 session.commit()
                 self.logger.info(f"Set {len(entries)} cache entries in table: {self.table_name}")
@@ -236,37 +238,38 @@ class AsyncPgCache(PgCache):
         except Exception as e:
             self.logger.error(f"Failed to initialize database: {e}")
 
-    async def set(self, key: str, value: Any, expire_after_seconds: int = 86400,
+    async def set(self, key: str, value: Any, expire_after_seconds: Optional[int] = None,
                   partition_key: str = 'default_partition') -> None:
         self.logger.info(f"Setting cache entry: {key}")
         try:
             if isinstance(value, (dict, list)):
                 value = json.dumps(value)
-            expire_time = datetime.utcnow() + timedelta(seconds=expire_after_seconds)
+            expire_time = None if expire_after_seconds is None else datetime.utcnow() + timedelta(
+                seconds=expire_after_seconds)
             entry = self.CacheEntry(key=key, value=value, expire_time=expire_time, partition_key=partition_key)
             async with self.Session() as session:
                 async with session.begin():
-                    await session.merge(entry)
+                    session.add(entry)
                 await session.commit()
                 self.logger.info(f"Set cache entry: {key} in table: {self.table_name}")
         except Exception as e:
             self.logger.error(f"Failed to set cache entry: {key}, error: {e}")
 
-    async def set_bulk(self, entries: List[Dict[str, Any]], expire_after_seconds: int = 86400,
+    async def set_bulk(self, entries: List[Dict[str, Any]], expire_after_seconds: Optional[int] = None,
                        partition_key: str = 'default_partition') -> None:
         self.logger.info(f"Setting bulk cache entries")
         try:
             async with self.Session() as session:
                 async with session.begin():
                     for entry in entries:
-                        key = entry['key']
-                        value = entry['value']
-                        if isinstance(value, (dict, list)):
-                            value = json.dumps(value)
-                        expire_time = datetime.utcnow() + timedelta(seconds=expire_after_seconds)
-                        cache_entry = self.CacheEntry(key=key, value=value, expire_time=expire_time,
-                                                      partition_key=partition_key)
-                        session.add(cache_entry)
+                        for key, value in entry.items():
+                            if isinstance(value, (dict, list)):
+                                value = json.dumps(value)
+                            expire_time = None if expire_after_seconds is None else datetime.utcnow() + timedelta(
+                                seconds=expire_after_seconds)
+                            cache_entry = self.CacheEntry(key=key, value=value, expire_time=expire_time,
+                                                          partition_key=partition_key)
+                            session.add(cache_entry)
                 await session.commit()
                 self.logger.info(f"Set {len(entries)} cache entries in table: {self.table_name}")
         except Exception as e:
@@ -348,7 +351,8 @@ class AsyncPgCache(PgCache):
             return
         try:
             async with self.Session() as session:
-                result = await session.execute(select(self.CacheEntry).where(self.CacheEntry.partition_key == partition_key))
+                result = await session.execute(
+                    select(self.CacheEntry).where(self.CacheEntry.partition_key == partition_key))
                 entries = result.scalars().all()
                 data = [
                     {
@@ -389,9 +393,8 @@ class AsyncPgCache(PgCache):
                             partition_key=partition_key
                         )
                         cache_entries.append(cache_entry)
-                    session.bulk_save_objects(cache_entries)
+                    session.add_all(cache_entries)
                 await session.commit()
                 self.logger.info(f"Imported cache entries from {file_path}")
         except Exception as e:
             self.logger.error(f"Failed to import cache entries from file: {file_path}, error: {e}")
-

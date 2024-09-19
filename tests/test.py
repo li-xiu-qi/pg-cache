@@ -12,7 +12,8 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 def test_sync_pg_cache():
     # 初始化同步缓存
-    sync_cache = PgCache(DATABASE_URL.replace("+asyncpg", ""), "sync_cache", log_level=logging.INFO)
+    sync_cache = PgCache(DATABASE_URL.replace("+asyncpg", ""), "sync_cache", partition_name="partition1",
+                         log_level=logging.INFO)
     sync_cache.init_db()
 
     # 测试 set 和 get
@@ -53,7 +54,7 @@ def test_sync_pg_cache():
 
 async def test_async_pg_cache():
     # 初始化异步缓存
-    async_cache = AsyncPgCache(DATABASE_URL, "async_cache", log_level=logging.INFO)
+    async_cache = AsyncPgCache(DATABASE_URL, "async_cache", partition_name="partition1", log_level=logging.INFO)
     await async_cache.init_db()
 
     # 测试 set 和 get

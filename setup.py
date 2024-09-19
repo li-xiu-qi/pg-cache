@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pg-cache',
-    version='0.1.6.1',
+    version='0.1.6.2',
     description='A PostgreSQL wrapper similar to diskcache',
     long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',

@@ -7,7 +7,7 @@ from typing import Any, Optional, List, Dict
 from sqlalchemy import Column, String, DateTime, Integer, Text, MetaData, Index, ForeignKey, select, delete
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
 Base = declarative_base()
@@ -21,7 +21,8 @@ class Partition(Base):
 
 class CacheEntry(Base):
     __tablename__ = 'cache_entries'
-    key = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    key = Column(String, index=True, nullable=False)
     value = Column(Text)
     expire_time = Column(DateTime, nullable=True)
     hit_count = Column(Integer, default=0)
@@ -39,17 +40,14 @@ Partition.cache_entries = relationship("CacheEntry", order_by=CacheEntry.key, ba
 
 
 class PgCache:
-    def __init__(self, db_url: str, table_name: str, partition_name: str = 'default', log_level: int = logging.ERROR):
+    def __init__(self, db_url: str, partition_name: str = 'default', drop_all=False, log_level: int = logging.ERROR):
         self.engine = create_engine(db_url, echo=False, pool_size=10, max_overflow=20)
         self.Session = sessionmaker(self.engine, expire_on_commit=False)
-        self.table_name = table_name
         self.metadata = MetaData()
         self.partition_name = partition_name
+        self.drop_all = drop_all
 
-        # 设置 SQLAlchemy 日志级别
         logging.getLogger('sqlalchemy.engine').setLevel(log_level)
-
-        # 设置当前类的日志级别
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
 
@@ -57,8 +55,10 @@ class PgCache:
         self.logger.info("Initializing database...")
         try:
             with self.engine.begin() as conn:
-                self.metadata.create_all(conn, tables=[Partition.__table__, CacheEntry.__table__])
-                self.logger.info(f"Initialized database and created tables")
+                if self.drop_all:
+                    Base.metadata.drop_all(conn)
+                Base.metadata.create_all(conn)
+                self.logger.info("Initialized database and created tables")
         except Exception as e:
             self.logger.error(f"Failed to initialize database: {e}")
 
@@ -82,12 +82,12 @@ class PgCache:
                 entry = CacheEntry(key=key, value=value, expire_time=expire_time, partition_id=partition.id)
                 session.merge(entry)
                 session.commit()
-                self.logger.info(f"Set cache entry: {key} in table: {self.table_name}")
+                self.logger.info(f"Set cache entry: {key}")
         except Exception as e:
             self.logger.error(f"Failed to set cache entry: {key}, error: {e}")
 
     def set_bulk(self, entries: List[Dict[str, Any]], expire_after_seconds: Optional[int] = None) -> None:
-        self.logger.info(f"Setting bulk cache entries")
+        self.logger.info("Setting bulk cache entries")
         try:
             with self.Session() as session:
                 partition = self._get_partition(session)
@@ -103,7 +103,7 @@ class PgCache:
                         cache_entries.append(cache_entry)
                 session.bulk_save_objects(cache_entries)
                 session.commit()
-                self.logger.info(f"Set {len(entries)} cache entries in table: {self.table_name}")
+                self.logger.info(f"Set {len(entries)} cache entries")
         except Exception as e:
             self.logger.error(f"Failed to set bulk cache entries, error: {e}")
 
@@ -123,13 +123,12 @@ class PgCache:
                 if entry:
                     entry.hit_count += 1
                     session.commit()
-                    self.logger.info(
-                        f"Retrieved cache entry: {key} (hit count: {entry.hit_count}) from table: {self.table_name}")
+                    self.logger.info(f"Retrieved cache entry: {key} (hit count: {entry.hit_count})")
                     try:
                         return json.loads(entry.value)
                     except json.JSONDecodeError:
                         return entry.value
-                self.logger.info(f"Cache miss for key: {key} in table: {self.table_name}")
+                self.logger.info(f"Cache miss for key: {key}")
                 return None
         except Exception as e:
             self.logger.error(f"Failed to get cache entry: {key}, error: {e}")
@@ -147,7 +146,7 @@ class PgCache:
                     )
                 )
                 session.commit()
-                self.logger.info(f"Deleted cache entry: {key} from table: {self.table_name}")
+                self.logger.info(f"Deleted cache entry: {key}")
         except Exception as e:
             self.logger.error(f"Failed to delete cache entry: {key}, error: {e}")
 
@@ -163,12 +162,12 @@ class PgCache:
                     )
                 )
                 session.commit()
-                self.logger.info(f"Deleted bulk cache entries from table: {self.table_name}")
+                self.logger.info("Deleted bulk cache entries")
         except Exception as e:
             self.logger.error(f"Failed to delete bulk cache entries, error: {e}")
 
     def flushdb(self) -> None:
-        self.logger.info(f"Flushing all cache entries")
+        self.logger.info("Flushing all cache entries")
         try:
             with self.Session() as session:
                 partition = self._get_partition(session)
@@ -176,7 +175,7 @@ class PgCache:
                     delete(CacheEntry).where(CacheEntry.partition_id == partition.id)
                 )
                 session.commit()
-                self.logger.info(f"Flushed all cache entries from table: {self.table_name}")
+                self.logger.info("Flushed all cache entries")
         except Exception as e:
             self.logger.error(f"Failed to flush cache entries, error: {e}")
 
@@ -238,12 +237,12 @@ class PgCache:
 
 
 class AsyncPgCache:
-    def __init__(self, db_url: str, table_name: str, partition_name: str = 'default', log_level: int = logging.ERROR):
+    def __init__(self, db_url: str, partition_name: str = 'default', drop_all=False, log_level: int = logging.ERROR):
         self.engine = create_async_engine(db_url, echo=False, pool_size=10, max_overflow=20)
         self.Session = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
-        self.table_name = table_name
         self.metadata = MetaData()
         self.partition_name = partition_name
+        self.drop_all = drop_all
 
         logging.getLogger('sqlalchemy.engine').setLevel(log_level)
         self.logger = logging.getLogger(__name__)
@@ -253,8 +252,10 @@ class AsyncPgCache:
         self.logger.info("Initializing database...")
         try:
             async with self.engine.begin() as conn:
-                await conn.run_sync(self.metadata.create_all, tables=[Partition.__table__, CacheEntry.__table__])
-                self.logger.info(f"Initialized database and created tables")
+                if self.drop_all:
+                    await conn.run_sync(Base.metadata.drop_all)
+                await conn.run_sync(Base.metadata.create_all)
+                self.logger.info("Initialized database and created tables")
         except Exception as e:
             self.logger.error(f"Failed to initialize database: {e}")
 
@@ -275,32 +276,30 @@ class AsyncPgCache:
             expire_time = None if expire_after_seconds is None else datetime.utcnow() + timedelta(
                 seconds=expire_after_seconds)
             async with self.Session() as session:
-                async with session.begin():
-                    partition = await self._get_partition(session)
-                    entry = CacheEntry(key=key, value=value, expire_time=expire_time, partition_id=partition.id)
-                    await session.merge(entry)
+                partition = await self._get_partition(session)
+                entry = CacheEntry(key=key, value=value, expire_time=expire_time, partition_id=partition.id)
+                session.add(entry)
                 await session.commit()
-                self.logger.info(f"Set cache entry: {key} in table: {self.table_name}")
+                self.logger.info(f"Set cache entry: {key}")
         except Exception as e:
             self.logger.error(f"Failed to set cache entry: {key}, error: {e}")
 
     async def set_bulk(self, entries: List[Dict[str, Any]], expire_after_seconds: Optional[int] = None) -> None:
-        self.logger.info(f"Setting bulk cache entries")
+        self.logger.info("Setting bulk cache entries")
         try:
             async with self.Session() as session:
-                async with session.begin():
-                    partition = await self._get_partition(session)
-                    for entry in entries:
-                        for key, value in entry.items():
-                            if isinstance(value, (dict, list)):
-                                value = json.dumps(value)
-                            expire_time = None if expire_after_seconds is None else datetime.utcnow() + timedelta(
-                                seconds=expire_after_seconds)
-                            cache_entry = CacheEntry(key=key, value=value, expire_time=expire_time,
-                                                     partition_id=partition.id)
-                            await session.merge(cache_entry)
+                partition = await self._get_partition(session)
+                for entry in entries:
+                    for key, value in entry.items():
+                        if isinstance(value, (dict, list)):
+                            value = json.dumps(value)
+                        expire_time = None if expire_after_seconds is None else datetime.utcnow() + timedelta(
+                            seconds=expire_after_seconds)
+                        cache_entry = CacheEntry(key=key, value=value, expire_time=expire_time,
+                                                 partition_id=partition.id)
+                        session.add(cache_entry)
                 await session.commit()
-                self.logger.info(f"Set {len(entries)} cache entries in table: {self.table_name}")
+                self.logger.info(f"Set {len(entries)} cache entries")
         except Exception as e:
             self.logger.error(f"Failed to set bulk cache entries, error: {e}")
 
@@ -308,21 +307,20 @@ class AsyncPgCache:
         self.logger.info(f"Getting cache entry: {key}")
         try:
             async with self.Session() as session:
-                async with session.begin():
-                    partition = await self._get_partition(session)
-                    result = await session.execute(
-                        select(CacheEntry).filter_by(key=key, partition_id=partition.id)
-                    )
-                    entry = result.scalar_one_or_none()
-                    if entry:
-                        entry.hit_count += 1
-                        await session.commit()
-                        self.logger.info(f"Cache hit for key: {key} in table: {self.table_name}")
-                        try:
-                            return json.loads(entry.value)
-                        except json.JSONDecodeError:
-                            return entry.value
-                self.logger.info(f"Cache miss for key: {key} in table: {self.table_name}")
+                partition = await self._get_partition(session)
+                result = await session.execute(
+                    select(CacheEntry).filter_by(key=key, partition_id=partition.id)
+                )
+                entry = result.scalar_one_or_none()
+                if entry:
+                    entry.hit_count += 1
+                    await session.commit()
+                    self.logger.info(f"Cache hit for key: {key}")
+                    try:
+                        return json.loads(entry.value)
+                    except json.JSONDecodeError:
+                        return entry.value
+                self.logger.info(f"Cache miss for key: {key}")
                 return None
         except Exception as e:
             self.logger.error(f"Failed to get cache entry: {key}, error: {e}")
@@ -332,13 +330,12 @@ class AsyncPgCache:
         self.logger.info(f"Deleting cache entry: {key}")
         try:
             async with self.Session() as session:
-                async with session.begin():
-                    partition = await self._get_partition(session)
-                    await session.execute(
-                        delete(CacheEntry).where(CacheEntry.key == key, CacheEntry.partition_id == partition.id)
-                    )
+                partition = await self._get_partition(session)
+                await session.execute(
+                    delete(CacheEntry).where(CacheEntry.key == key, CacheEntry.partition_id == partition.id)
+                )
                 await session.commit()
-                self.logger.info(f"Deleted cache entry: {key} from table: {self.table_name}")
+                self.logger.info(f"Deleted cache entry: {key}")
         except Exception as e:
             self.logger.error(f"Failed to delete cache entry: {key}, error: {e}")
 
@@ -346,27 +343,25 @@ class AsyncPgCache:
         self.logger.info(f"Deleting bulk cache entries: {keys}")
         try:
             async with self.Session() as session:
-                async with session.begin():
-                    partition = await self._get_partition(session)
-                    await session.execute(
-                        delete(CacheEntry).where(CacheEntry.key.in_(keys), CacheEntry.partition_id == partition.id)
-                    )
+                partition = await self._get_partition(session)
+                await session.execute(
+                    delete(CacheEntry).where(CacheEntry.key.in_(keys), CacheEntry.partition_id == partition.id)
+                )
                 await session.commit()
-                self.logger.info(f"Deleted bulk cache entries from table: {self.table_name}")
+                self.logger.info("Deleted bulk cache entries")
         except Exception as e:
             self.logger.error(f"Failed to delete bulk cache entries, error: {e}")
 
     async def flushdb(self) -> None:
-        self.logger.info(f"Flushing all cache entries")
+        self.logger.info("Flushing all cache entries")
         try:
             async with self.Session() as session:
-                async with session.begin():
-                    partition = await self._get_partition(session)
-                    await session.execute(
-                        delete(CacheEntry).where(CacheEntry.partition_id == partition.id)
-                    )
+                partition = await self._get_partition(session)
+                await session.execute(
+                    delete(CacheEntry).where(CacheEntry.partition_id == partition.id)
+                )
                 await session.commit()
-                self.logger.info(f"Flushed all cache entries from table: {self.table_name}")
+                self.logger.info("Flushed all cache entries")
         except Exception as e:
             self.logger.error(f"Failed to flush cache entries, error: {e}")
 
@@ -377,23 +372,22 @@ class AsyncPgCache:
             return
         try:
             async with self.Session() as session:
-                async with session.begin():
-                    partition = await self._get_partition(session)
-                    result = await session.execute(
-                        select(CacheEntry).where(CacheEntry.partition_id == partition.id))
-                    entries = result.scalars().all()
-                    data = [
-                        {
-                            'key': entry.key,
-                            'value': entry.value,
-                            'expire_time': entry.expire_time.isoformat() if entry.expire_time else None,
-                            'hit_count': entry.hit_count,
-                            'partition_id': entry.partition_id
-                        }
-                        for entry in entries
-                    ]
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        json.dump(data, f, ensure_ascii=False, indent=4)
+                partition = await self._get_partition(session)
+                result = await session.execute(
+                    select(CacheEntry).where(CacheEntry.partition_id == partition.id))
+                entries = result.scalars().all()
+                data = [
+                    {
+                        'key': entry.key,
+                        'value': entry.value,
+                        'expire_time': entry.expire_time.isoformat() if entry.expire_time else None,
+                        'hit_count': entry.hit_count,
+                        'partition_id': entry.partition_id
+                    }
+                    for entry in entries
+                ]
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=4)
                 self.logger.info(f"Exported cache entries to {file_path}")
         except Exception as e:
             self.logger.error(f"Failed to export cache entries to file: {file_path}, error: {e}")
@@ -410,19 +404,18 @@ class AsyncPgCache:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             async with self.Session() as session:
-                async with session.begin():
-                    partition = await self._get_partition(session)
-                    cache_entries = []
-                    for entry in data:
-                        cache_entry = CacheEntry(
-                            key=entry['key'],
-                            value=entry['value'],
-                            expire_time=datetime.fromisoformat(entry['expire_time']) if entry['expire_time'] else None,
-                            hit_count=entry['hit_count'],
-                            partition_id=partition.id
-                        )
-                        cache_entries.append(cache_entry)
-                    session.add_all(cache_entries)
+                partition = await self._get_partition(session)
+                cache_entries = []
+                for entry in data:
+                    cache_entry = CacheEntry(
+                        key=entry['key'],
+                        value=entry['value'],
+                        expire_time=datetime.fromisoformat(entry['expire_time']) if entry['expire_time'] else None,
+                        hit_count=entry['hit_count'],
+                        partition_id=partition.id
+                    )
+                    cache_entries.append(cache_entry)
+                session.add_all(cache_entries)
                 await session.commit()
                 self.logger.info(f"Imported cache entries from {file_path}")
         except Exception as e:

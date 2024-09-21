@@ -40,8 +40,10 @@ Partition.cache_entries = relationship("CacheEntry", order_by=CacheEntry.key, ba
 
 
 class PgCache:
-    def __init__(self, db_url: str, partition_name: str = 'default', drop_all=False, log_level: int = logging.ERROR):
-        self.engine = create_engine(db_url, echo=False, pool_size=10, max_overflow=20)
+    def __init__(self, db_url: str, partition_name: str = 'default', drop_all=False, pool_size=20, max_overflow=100,
+                 pool_timeout=60, log_level: int = logging.ERROR):
+        self.engine = create_engine(db_url, echo=False, pool_size=pool_size, max_overflow=max_overflow,
+                                    pool_timeout=pool_timeout)
         self.Session = sessionmaker(self.engine, expire_on_commit=False)
         self.metadata = MetaData()
         self.partition_name = partition_name
@@ -237,8 +239,10 @@ class PgCache:
 
 
 class AsyncPgCache:
-    def __init__(self, db_url: str, partition_name: str = 'default', drop_all=False, log_level: int = logging.ERROR):
-        self.engine = create_async_engine(db_url, echo=False, pool_size=10, max_overflow=20)
+    def __init__(self, db_url: str, partition_name: str = 'default', drop_all=False, pool_size=20, max_overflow=60,
+                 pool_timeout=60, log_level: int = logging.ERROR):
+        self.engine = create_async_engine(db_url, echo=False, pool_size=pool_size, max_overflow=max_overflow,
+                                          pool_timeout=pool_timeout)
         self.Session = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
         self.metadata = MetaData()
         self.partition_name = partition_name
